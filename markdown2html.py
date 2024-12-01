@@ -14,21 +14,36 @@ def convert_markdown_to_html(markdown_content):
         str: The converted HTML content.
     """
     html_lines = []
+    in_list = False
+
     for line in markdown_content.split('\n'):
         if line.startswith('#'):
             heading_level = len(line.split(' ')[0])
             heading_text = ' '.join(line.split(' ')[1:])
             html_line = f'<h{heading_level}>{heading_text}</h{heading_level}>'
             html_lines.append(html_line)
+        elif line.startswith('- '):
+            if not in_list:
+                html_lines.append('<ul>')
+                in_list = True
+            list_item = line[2:].strip()
+            html_lines.append(f'  <li>{list_item}</li>')
         else:
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
             html_lines.append(line)
+
+    if in_list:
+        html_lines.append('</ul>')
+
     return '\n'.join(html_lines)
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: ./markdown2html.py README.md README.html", file=sys.stderr)
         sys.exit(1)
-    
+
     markdown_file = sys.argv[1]
     output_file = sys.argv[2]
 
