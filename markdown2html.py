@@ -14,7 +14,8 @@ def convert_markdown_to_html(markdown_content):
         str: The converted HTML content.
     """
     html_lines = []
-    in_list = False
+    in_ul_list = False
+    in_ol_list = False
 
     for line in markdown_content.split('\n'):
         if line.startswith('#'):
@@ -23,19 +24,36 @@ def convert_markdown_to_html(markdown_content):
             html_line = f'<h{heading_level}>{heading_text}</h{heading_level}>'
             html_lines.append(html_line)
         elif line.startswith('- '):
-            if not in_list:
+            if in_ol_list:
+                html_lines.append('</ol>')
+                in_ol_list = False
+            if not in_ul_list:
                 html_lines.append('<ul>')
-                in_list = True
+                in_ul_list = True
+            list_item = line[2:].strip()
+            html_lines.append(f'  <li>{list_item}</li>')
+        elif line.startswith('* '):
+            if in_ul_list:
+                html_lines.append('</ul>')
+                in_ul_list = False
+            if not in_ol_list:
+                html_lines.append('<ol>')
+                in_ol_list = True
             list_item = line[2:].strip()
             html_lines.append(f'  <li>{list_item}</li>')
         else:
-            if in_list:
+            if in_ul_list:
                 html_lines.append('</ul>')
-                in_list = False
+                in_ul_list = False
+            if in_ol_list:
+                html_lines.append('</ol>')
+                in_ol_list = False
             html_lines.append(line)
 
-    if in_list:
+    if in_ul_list:
         html_lines.append('</ul>')
+    if in_ol_list:
+        html_lines.append('</ol>')
 
     return '\n'.join(html_lines)
 
