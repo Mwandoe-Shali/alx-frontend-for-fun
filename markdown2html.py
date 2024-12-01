@@ -3,6 +3,7 @@
 import sys
 import os
 import re
+import hashlib
 
 def convert_markdown_to_html(markdown_content):
     """
@@ -24,8 +25,22 @@ def convert_markdown_to_html(markdown_content):
         text = re.sub(r'__(.*?)__', r'<em>\1</em>', text)    # emphasis
         return text
 
+    def convert_md5_and_remove_c(text):
+        text = re.sub(r'
+
+\[
+
+\[(.*?)\]
+
+\]
+
+', lambda match: hashlib.md5(match.group(1).encode()).hexdigest(), text)  # MD5
+        text = re.sub(r'\(\((.*?)\)\)', lambda match: match.group(1).replace('c', '').replace('C', ''), text)  # Remove 'c'
+        return text
+
     for line in markdown_content.split('\n'):
         line = convert_bold_and_emphasis(line)
+        line = convert_md5_and_remove_c(line)
         if line.startswith('#'):
             if in_paragraph:
                 html_lines.append('</p>')
@@ -88,7 +103,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: ./markdown2html.py README.md README.html", file=sys.stderr)
         sys.exit(1)
-    
+
     markdown_file = sys.argv[1]
     output_file = sys.argv[2]
 
