@@ -2,6 +2,7 @@
 
 import sys
 import os
+import re
 
 def convert_markdown_to_html(markdown_content):
     """
@@ -18,7 +19,13 @@ def convert_markdown_to_html(markdown_content):
     in_ol_list = False
     in_paragraph = False
 
+    def convert_bold_and_emphasis(text):
+        text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', text)  # bold
+        text = re.sub(r'__(.*?)__', r'<em>\1</em>', text)    # emphasis
+        return text
+
     for line in markdown_content.split('\n'):
+        line = convert_bold_and_emphasis(line)
         if line.startswith('#'):
             if in_paragraph:
                 html_lines.append('</p>')
