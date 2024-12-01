@@ -16,14 +16,21 @@ def convert_markdown_to_html(markdown_content):
     html_lines = []
     in_ul_list = False
     in_ol_list = False
+    in_paragraph = False
 
     for line in markdown_content.split('\n'):
         if line.startswith('#'):
+            if in_paragraph:
+                html_lines.append('</p>')
+                in_paragraph = False
             heading_level = len(line.split(' ')[0])
             heading_text = ' '.join(line.split(' ')[1:])
             html_line = f'<h{heading_level}>{heading_text}</h{heading_level}>'
             html_lines.append(html_line)
         elif line.startswith('- '):
+            if in_paragraph:
+                html_lines.append('</p>')
+                in_paragraph = False
             if in_ol_list:
                 html_lines.append('</ol>')
                 in_ol_list = False
@@ -33,6 +40,9 @@ def convert_markdown_to_html(markdown_content):
             list_item = line[2:].strip()
             html_lines.append(f'  <li>{list_item}</li>')
         elif line.startswith('* '):
+            if in_paragraph:
+                html_lines.append('</p>')
+                in_paragraph = False
             if in_ul_list:
                 html_lines.append('</ul>')
                 in_ul_list = False
@@ -48,12 +58,22 @@ def convert_markdown_to_html(markdown_content):
             if in_ol_list:
                 html_lines.append('</ol>')
                 in_ol_list = False
-            html_lines.append(line)
+            if line.strip() == "":
+                if in_paragraph:
+                    html_lines.append('</p>')
+                    in_paragraph = False
+            else:
+                if not in_paragraph:
+                    html_lines.append('<p>')
+                    in_paragraph = True
+                html_lines.append(line.replace('\n', '<br/>'))
 
     if in_ul_list:
         html_lines.append('</ul>')
     if in_ol_list:
         html_lines.append('</ol>')
+    if in_paragraph:
+        html_lines.append('</p>')
 
     return '\n'.join(html_lines)
 
@@ -61,7 +81,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: ./markdown2html.py README.md README.html", file=sys.stderr)
         sys.exit(1)
-
+    
     markdown_file = sys.argv[1]
     output_file = sys.argv[2]
 
